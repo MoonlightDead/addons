@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bylampa PATCH – Description Lines + Ribbon Height
-// @version      1.1.0
-// @description  Patch for bylampa: description lines and ribbon height
+// @version      1.2.0
+// @description  Patch for bylampa: description lines and ribbon height (with negative values)
 // ==/UserScript==
 
 (function () {
@@ -37,13 +37,15 @@
         onChange: applyPatch
     });
 
-    // Ribbon height
+    // Ribbon height (with negative values)
     Lampa.SettingsApi.addParam({
         component: 'interface',
         param: {
             name: 'bylampa_ribbon_height',
             type: 'select',
             values: {
+                '-10': '-10%',
+                '-5': '-5%',
                 0: '0%',
                 5: '5%',
                 10: '10%',
@@ -56,7 +58,7 @@
         },
         field: {
             name: 'Высота ленты',
-            description: 'Вертикальное положение ленты в карточке bylampa'
+            description: 'Вертикальное положение ленты (допускаются отрицательные значения)'
         },
         onChange: applyPatch
     });
@@ -67,7 +69,7 @@
 
     function applyPatch() {
         const lines = Lampa.Storage.field('bylampa_description_lines') || 4;
-        const ribbon = Lampa.Storage.field('bylampa_ribbon_height') ?? 15;
+        const ribbon = Number(Lampa.Storage.field('bylampa_ribbon_height') ?? 15);
 
         const id = 'bylampa-ui-patch-style';
         const old = document.getElementById(id);
