@@ -44,8 +44,8 @@
             name: 'bylampa_ribbon_height',
             type: 'select',
             values: {
-                '-10': '-10%',
                 '-5': '-5%',
+                '-3': '-3%',
                 0: '0%',
                 5: '5%',
                 10: '10%',
@@ -54,7 +54,7 @@
                 25: '25%',
                 30: '30%'
             },
-            default: 15
+            default: 0
         },
         field: {
             name: 'Высота ленты',
@@ -110,3 +110,4 @@
     Lampa.Listener.follow('back', applyPatch);
 
 })();
+
