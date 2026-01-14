@@ -1,157 +1,96 @@
 // ==UserScript==
-// @name         InterfaceLAMPA Merged
-// @version      2.0.0
-// @description  Untitled logic + Interface settings & metadata
-// @author       You
+// @name         bylampa PATCH – Description Lines
+// @version      1.0.0
+// @description  Patch for bylampa: description line count
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    /* ================= НАСТРОЙКИ (ИЗ interface) ================= */
+    /* ======================================================
+       ЗАЩИТА
+       ====================================================== */
+
+    if (window.__bylampa_desc_patch__) return;
+    window.__bylampa_desc_patch__ = true;
+
+    /* ======================================================
+       НАСТРОЙКА
+       ====================================================== */
 
     Lampa.SettingsApi.addParam({
         component: 'interface',
         param: {
-            name: 'WidePosters',
-            type: 'trigger',
-            default: false
-        },
-        field: {
-            name: 'Широкие постеры'
-        },
-        onChange: () => Lampa.Settings.update()
-    });
-
-    Lampa.SettingsApi.addParam({
-        component: 'interface',
-        param: {
-            name: 'Genres',
-            type: 'trigger',
-            default: true
-        },
-        field: {
-            name: 'Показывать жанры'
-        },
-        onChange: () => Lampa.Settings.update()
-    });
-
-    Lampa.SettingsApi.addParam({
-        component: 'interface',
-        param: {
-            name: 'HeightControl',
-            type: 'select',
-            values: {
-                low: 'Низко',
-                middle: 'Средне'
-            },
-            default: 'middle'
-        },
-        field: {
-            name: 'Положение ленты'
-        },
-        onChange: () => {
-            Lampa.Settings.update();
-            applyStyles();
-        }
-    });
-
-    /* ================= НАСТРОЙКИ (ИЗ untitled) ================= */
-
-    Lampa.SettingsApi.addParam({
-        component: 'interface',
-        param: {
-            name: 'DescriptionLines',
+            name: 'bylampa_description_lines',
             type: 'select',
             values: {
                 1: '1 строка',
                 2: '2 строки',
                 3: '3 строки',
                 4: '4 строки',
-                5: '5 строк'
+                5: '5 строк',
+                6: '6 строк'
             },
-            default: 5
+            default: 4
         },
         field: {
-            name: 'Строки описания'
+            name: 'Описание: строки',
+            description: 'Количество строк описания в интерфейсе bylampa'
         },
-        onChange: () => {
+        onChange: function () {
             Lampa.Settings.update();
-            applyStyles();
+            applyPatch();
         }
     });
 
-    /* ================= СТИЛИ (untitled + interface) ================= */
+    /* ======================================================
+       CSS PATCH
+       ====================================================== */
 
-    function applyStyles() {
+    function applyPatch() {
+        const lines = Lampa.Storage.field('bylampa_description_lines') || 4;
+        const id = 'bylampa-description-lines-patch';
 
-        let height = '20';
-        if (Lampa.Storage.field('HeightControl') === 'low') height = '23';
+        const old = document.getElementById(id);
+        if (old) old.remove();
 
-        let lines = Lampa.Storage.field('DescriptionLines') || 5;
+        const style = document.createElement('style');
+        style.id = id;
 
-        $('#merged-interface-style').remove();
+        style.textContent = `
+            /* === bylampa description lines PATCH === */
 
-        $('body').append(`
-            <style id="merged-interface-style">
+            .new-interface-info__description {
+                display: -webkit-box !important;
+                -webkit-line-clamp: ${lines} !important;
+                line-clamp: ${lines} !important;
+                -webkit-box-orient: vertical !important;
+                overflow: hidden !important;
+            }
+        `;
 
-                .new-interface-info {
-                    height: ${height}em !important;
-                }
-
-                .new-interface-info__description {
-                    display: -webkit-box !important;
-                    -webkit-line-clamp: ${lines};
-                    line-clamp: ${lines};
-                    -webkit-box-orient: vertical;
-                }
-
-                ${Lampa.Storage.field('WidePosters') ? '' : `
-                .new-interface .card--small.card--wide {
-                    width: 18.3em;
-                }`}
-
-            </style>
-        `);
+        document.head.appendChild(style);
     }
 
-    /* ================= МЕТАДАННЫЕ КАРТОЧКИ (ИЗ interface) ================= */
+    /* ======================================================
+       ХУКИ ЖИЗНЕННОГО ЦИКЛА LAMPA
+       ====================================================== */
 
-    const originalDraw = Lampa.Api.sources.tmdb.parse;
+    applyPatch();
 
-    Lampa.Api.sources.tmdb.parse = function (data) {
+    // вход в карточку
+    Lampa.Listener.follow('full', function () {
+        applyPatch();
+    });
 
-        let parsed = originalDraw.apply(this, arguments);
+    // смена activity
+    Lampa.Listener.follow('activity', function () {
+        applyPatch();
+    });
 
-        let details = [];
-
-        if (parsed.pg) {
-            details.push(`<span class="full-start__pg">${parsed.pg}</span>`);
-        }
-
-        if (parsed.runtime) {
-            let h = Math.floor(parsed.runtime / 60);
-            let m = parsed.runtime % 60;
-            details.push(`<span>${h}ч ${m}м</span>`);
-        }
-
-        if (parsed.number_of_seasons) {
-            details.push(`<span>Сезонов ${parsed.number_of_seasons}</span>`);
-        }
-
-        if (parsed.genres && Lampa.Storage.field('Genres')) {
-            details.push(parsed.genres.map(g => g.name).join(' '));
-        }
-
-        parsed.custom_details = details.join(' • ');
-
-        return parsed;
-    };
-
-    /* ================= ИНИЦИАЛИЗАЦИЯ ================= */
-
-    applyStyles();
-
-    Lampa.Listener.follow('full', applyStyles);
+    // возврат назад
+    Lampa.Listener.follow('back', function () {
+        applyPatch();
+    });
 
 })();
