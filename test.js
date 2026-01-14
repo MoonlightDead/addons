@@ -1,23 +1,20 @@
 // ==UserScript==
-// @name         bylampa PATCH – Description Lines
-// @version      1.0.0
-// @description  Patch for bylampa: description line count
+// @name         bylampa PATCH – Description Lines + Ribbon Height
+// @version      1.1.0
+// @description  Patch for bylampa: description lines and ribbon height
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    /* ======================================================
-       ЗАЩИТА
-       ====================================================== */
-
-    if (window.__bylampa_desc_patch__) return;
-    window.__bylampa_desc_patch__ = true;
+    if (window.__bylampa_ui_patch__) return;
+    window.__bylampa_ui_patch__ = true;
 
     /* ======================================================
-       НАСТРОЙКА
+       SETTINGS
        ====================================================== */
 
+    // Description lines
     Lampa.SettingsApi.addParam({
         component: 'interface',
         param: {
@@ -37,10 +34,31 @@
             name: 'Описание: строки',
             description: 'Количество строк описания в интерфейсе bylampa'
         },
-        onChange: function () {
-            Lampa.Settings.update();
-            applyPatch();
-        }
+        onChange: applyPatch
+    });
+
+    // Ribbon height
+    Lampa.SettingsApi.addParam({
+        component: 'interface',
+        param: {
+            name: 'bylampa_ribbon_height',
+            type: 'select',
+            values: {
+                0: '0%',
+                5: '5%',
+                10: '10%',
+                15: '15%',
+                20: '20%',
+                25: '25%',
+                30: '30%'
+            },
+            default: 15
+        },
+        field: {
+            name: 'Высота ленты',
+            description: 'Вертикальное положение ленты в карточке bylampa'
+        },
+        onChange: applyPatch
     });
 
     /* ======================================================
@@ -49,8 +67,9 @@
 
     function applyPatch() {
         const lines = Lampa.Storage.field('bylampa_description_lines') || 4;
-        const id = 'bylampa-description-lines-patch';
+        const ribbon = Lampa.Storage.field('bylampa_ribbon_height') ?? 15;
 
+        const id = 'bylampa-ui-patch-style';
         const old = document.getElementById(id);
         if (old) old.remove();
 
@@ -58,8 +77,9 @@
         style.id = id;
 
         style.textContent = `
-            /* === bylampa description lines PATCH === */
+            /* === bylampa UI PATCH === */
 
+            /* Description lines */
             .new-interface-info__description {
                 display: -webkit-box !important;
                 -webkit-line-clamp: ${lines} !important;
@@ -67,30 +87,24 @@
                 -webkit-box-orient: vertical !important;
                 overflow: hidden !important;
             }
+
+            /* Ribbon height */
+            .new-interface-info {
+                margin-top: ${ribbon}vh !important;
+            }
         `;
 
         document.head.appendChild(style);
     }
 
     /* ======================================================
-       ХУКИ ЖИЗНЕННОГО ЦИКЛА LAMPA
+       LIFECYCLE HOOKS
        ====================================================== */
 
     applyPatch();
 
-    // вход в карточку
-    Lampa.Listener.follow('full', function () {
-        applyPatch();
-    });
-
-    // смена activity
-    Lampa.Listener.follow('activity', function () {
-        applyPatch();
-    });
-
-    // возврат назад
-    Lampa.Listener.follow('back', function () {
-        applyPatch();
-    });
+    Lampa.Listener.follow('full', applyPatch);
+    Lampa.Listener.follow('activity', applyPatch);
+    Lampa.Listener.follow('back', applyPatch);
 
 })();
