@@ -433,7 +433,7 @@ function markSmartTV(){
 
                 const sep = document.createElement('span');
                 sep.className = 'full-start-new__split logo-moved-separator';
-                sep.textContent = '●';
+                sep.textContent = ' ';
 
                 if (detailsEl.children && detailsEl.children.length > 0) detailsEl.appendChild(sep);
                 detailsEl.appendChild(headSpan);
@@ -1872,23 +1872,23 @@ body.advanced--animation:not(.no--animation) .new-interface .card--small.animate
     Lampa.SettingsApi.addParam({
         component: 'interface',
         param: {
-            name: 'interfacelampac_ribbon_height',
-            type: 'select',
-            values: {
-                '-6': '-6%',
-                '-4': '-4%',
-                '-2': '-2%',
-                '0': '0%',
-                '2': '2%',
-                '4': '4%',
-                '6': '6%',
-                '8': '8%',
-                '10': '10%',
-                '12': '12%',
-                '14': '14%'
-            },
-            default: 0
-        },
+    name: 'interfacelampac_ribbon_height',
+    type: 'select',
+    options: [
+        { value: -6, name: '-6%' },
+        { value: -4, name: '-4%' },
+        { value: -2, name: '-2%' },
+        { value: 0,  name: '0%'  },
+        { value: 2,  name: '2%'  },
+        { value: 4,  name: '4%'  },
+        { value: 6,  name: '6%'  },
+        { value: 8,  name: '8%'  },
+        { value: 10, name: '10%' },
+        { value: 12, name: '12%' },
+        { value: 14, name: '14%' }
+    ],
+    default: 0
+},
         field: {
             name: 'Высота ленты',
             description: 'Вертикальное положение ленты'
@@ -1919,4 +1919,47 @@ body.advanced--animation:not(.no--animation) .new-interface .card--small.animate
     Lampa.Listener.follow('full', applyRibbonHeight);
     Lampa.Listener.follow('activity', applyRibbonHeight);
     Lampa.Listener.follow('back', applyRibbonHeight);
+})();
+/* ======================================================
+   PATCH: Show / Hide Genres
+   ====================================================== */
+(function () {
+    if (window.__interfacelampac_genres_patch__) return;
+    window.__interfacelampac_genres_patch__ = true;
+
+    Lampa.SettingsApi.addParam({
+        component: 'interface',
+        param: {
+            name: 'interfacelampac_show_genres',
+            type: 'toggle',
+            default: true
+        },
+        field: {
+            name: 'Отображать жанры'
+        },
+        onChange: applyGenresVisibility
+    });
+
+    function applyGenresVisibility() {
+        var show = Lampa.Storage.field('interfacelampac_show_genres') !== false;
+
+        var id = 'interfacelampac-genres-style';
+        var old = document.getElementById(id);
+        if (old) old.remove();
+
+        if (!show) {
+            var style = document.createElement('style');
+            style.id = id;
+            style.textContent =
+                '.new-interface-info__genres{' +
+                'display:none !important;' +
+                '}';
+            document.head.appendChild(style);
+        }
+    }
+
+    applyGenresVisibility();
+
+    Lampa.Listener.follow('full', applyGenresVisibility);
+    Lampa.Listener.follow('activity', applyGenresVisibility);
 })();
