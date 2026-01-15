@@ -1874,19 +1874,19 @@ body.advanced--animation:not(.no--animation) .new-interface .card--small.animate
         param: {
     name: 'interfacelampac_ribbon_height',
     type: 'select',
-    options: [
-        { value: -6, name: '-6%' },
-        { value: -4, name: '-4%' },
-        { value: -2, name: '-2%' },
-        { value: 0,  name: '0%'  },
-        { value: 2,  name: '2%'  },
-        { value: 4,  name: '4%'  },
-        { value: 6,  name: '6%'  },
-        { value: 8,  name: '8%'  },
-        { value: 10, name: '10%' },
-        { value: 12, name: '12%' },
-        { value: 14, name: '14%' }
-    ],
+    values: {
+        '-6': '-6%',
+        '-4': '-4%',
+        '-2': '-2%',
+        '0': '0%',
+        '2': '2%',
+        '4': '4%',
+        '6': '6%',
+        '8': '8%',
+        '10': '10%',
+        '12': '12%',
+        '14': '14%'
+    },
     default: 0
 },
         field: {
